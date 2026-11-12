@@ -23,9 +23,12 @@
         string author = extension.String("Author");
         string version = extension.String("AnalyzedPackageVersion");
         string publishDate = extension.String("AnalyzedPackagePublishDate");
-        string categories = (String.Join(", ", extension.List<string>("Categories")));
+        var categoryList = extension.List<string>("Categories") ?? new List<string>();
+        string categories = String.Join(", ", categoryList);
+        // Machine-readable, lower-cased and pipe-delimited so a single category can be matched reliably.
+        string categoryData = String.Join("|", categoryList.Select(x => x.Trim().ToLowerInvariant()));
 
-        <article class="extension row" data-type="@type" data-name="@name" data-analyzedpackagepublishdate="@publishDate" data-categories="@categories">
+        <article class="extension row" data-type="@type" data-name="@name" data-analyzedpackagepublishdate="@publishDate" data-categories="@categoryData">
             <div class="col-sm-1 hidden-xs hidden-sm col-package-icon">
                 @switch (type) {
                     case "Addin":

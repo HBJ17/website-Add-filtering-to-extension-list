@@ -10,6 +10,18 @@
                 extensionType.Any(y => y.Equals(x.String("Type"), StringComparison.OrdinalIgnoreCase)))
             .OrderBy(x => x.String("Name"))
             .ToList();
+
+    // Distinct categories (case-insensitive) with the number of extensions using each.
+    var categoryCounts =
+        extensions
+            .SelectMany(x => (x.List<string>("Categories") ?? new List<string>())
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .Select(c => c.Trim().ToLowerInvariant())
+                .Distinct())
+            .GroupBy(c => c)
+            .OrderBy(g => g.Key)
+            .Select(g => new { Name = g.Key, Count = g.Count() })
+            .ToList();
 }
 
 <div class="alert alert-info">
