@@ -74,6 +74,35 @@
                 <button class="sort btn btn-default asc" data-sort="name">Name</button>
                 <button class="sort btn btn-default" data-sort="analyzedpackagepublishdate" data-default-order="desc">Publish Date</button>
             </div>
+            <div class="col-md-6" id="category-filter">
+                <div>Categories</div>
+                <div class="dropdown" id="category-dropdown">
+                    <button class="btn btn-default dropdown-toggle" type="button" id="category-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span id="category-summary">Any category</span>
+                        <span class="caret"></span>
+                    </button>
+                    <div class="dropdown-menu category-menu" aria-labelledby="category-toggle">
+                        <input id="category-search" type="search" class="form-control input-sm" aria-label="Filter the list of categories" placeholder="Filter categories..." autocomplete="off">
+                        <ul class="list-unstyled category-options" id="category-options">
+                            @foreach (var category in categoryCounts)
+                            {
+                                <li data-category="@category.Name">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" class="filterCategory" value="@category.Name">
+                                            @category.Name <span class="text-muted">(@category.Count)</span>
+                                        </label>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                        <div class="category-menu-footer">
+                            <button type="button" class="btn btn-link btn-sm" id="category-clear">Clear categories</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="category-chips" class="category-chips" aria-live="polite"></div>
+            </div>
         </div>
     </div>
 
