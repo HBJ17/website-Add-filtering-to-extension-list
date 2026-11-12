@@ -155,6 +155,56 @@
         }
 
         updateResultCount();
+        updateUrl();
+    }
+
+    // Reflect the active filters in the query string (?type=Addin&category=aws) so a view can be shared.
+    function updateUrl() {
+        if (!window.history || !window.history.replaceState || !window.URLSearchParams) {
+            return;
+        }
+
+        var params = new URLSearchParams(window.location.search);
+        params.delete('type');
+        params.delete('category');
+
+        if (selectedType) {
+            params.set('type', selectedType);
+        }
+
+        selectedCategories.forEach(function(category) {
+            params.append('category', category);
+        });
+
+        var query = params.toString();
+        window.history.replaceState(null, '', window.location.pathname + (query ? '?' + query : '') + window.location.hash);
+    }
+
+    function restoreFiltersFromUrl() {
+        if (!window.URLSearchParams) {
+            return;
+        }
+
+        var params = new URLSearchParams(window.location.search);
+
+        // Only accept values that exist on the page.
+        var type = params.get('type');
+        var $typeRadio = $('.filterType').filter(function() { return type && this.value.toLowerCase() === type.toLowerCase(); });
+        if ($typeRadio.length) {
+            selectedType = $typeRadio.val();
+            $typeRadio.prop('checked', true);
+        }
+
+        var available = $('.filterCategory').map(function() { return this.value; }).get();
+        var categories = params.getAll('category')
+            .map(function(category) { return category.trim().toLowerCase(); })
+            .filter(function(category, index, all) { return available.indexOf(category) !== -1 && all.indexOf(category) === index; });
+
+        if (selectedType || categories.length) {
+            $('#extension-filter').addClass('in');
+            $('.btn-filter').attr('aria-expanded', 'true');
+            setSelectedCategories(categories);
+        }
     }
 
     function renderCategoryState() {
@@ -219,4 +269,6 @@
             $(this).toggle($(this).data('category').indexOf(term) !== -1);
         });
     });
+
+    restoreFiltersFromUrl();
 </script>
