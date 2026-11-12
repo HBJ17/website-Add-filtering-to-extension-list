@@ -122,20 +122,101 @@
 
     var extensionList = new List('extensions', options);
 
-    extensionList.on('searchComplete', function() {
+    var selectedType = '';
+    var selectedCategories = [];
+
+    function updateResultCount() {
         document.getElementById("result-count").innerHTML = extensionList.update().matchingItems.length + " extensions found";
-    });
+    }
 
-    $('.filterType').on('change', function() {
-        var $type = this.value;
-
-        if (!$type) {
+    // List.js only keeps a single filter function, so type and category filters are combined here.
+    function applyFilters() {
+        if (!selectedType && selectedCategories.length === 0) {
             extensionList.filter();
         }
         else {
             extensionList.filter(function(item) {
-                return (item.values().type == $type);
+                var values = item.values();
+
+                if (selectedType && values.type !== selectedType) {
+                    return false;
+                }
+
+                if (selectedCategories.length === 0) {
+                    return true;
+                }
+
+                // An extension matches if it has ANY of the selected categories.
+                var itemCategories = (values.categories || '').split('|');
+                return selectedCategories.some(function(category) {
+                    return itemCategories.indexOf(category) !== -1;
+                });
             });
         }
+
+        updateResultCount();
+    }
+
+    function renderCategoryState() {
+        $('.filterCategory').each(function() {
+            this.checked = selectedCategories.indexOf(this.value) !== -1;
+        });
+
+        $('#category-summary').text(
+            selectedCategories.length === 0 ? 'Any category' : selectedCategories.length + ' selected');
+
+        var $chips = $('#category-chips').empty();
+        selectedCategories.forEach(function(category) {
+            var $remove = $('<button type="button" class="category-chip-remove"></button>')
+                .attr('aria-label', 'Remove category ' + category)
+                .data('category', category)
+                .html('&times;');
+            $('<span class="category-chip"></span>').text(category).append($remove).appendTo($chips);
+        });
+    }
+
+    function setSelectedCategories(categories) {
+        selectedCategories = categories;
+        renderCategoryState();
+        applyFilters();
+    }
+
+    extensionList.on('searchComplete', updateResultCount);
+
+    $('.filterType').on('change', function() {
+        selectedType = this.value;
+        applyFilters();
+    });
+
+    // Keep the dropdown open while ticking several categories.
+    $('#category-dropdown .dropdown-menu').on('click', function(e) {
+        e.stopPropagation();
+    });
+
+    $('.filterCategory').on('change', function() {
+        var value = this.value;
+        var categories = selectedCategories.filter(function(category) { return category !== value; });
+
+        if (this.checked) {
+            categories.push(value);
+        }
+
+        setSelectedCategories(categories);
+    });
+
+    $('#category-chips').on('click', '.category-chip-remove', function() {
+        var value = $(this).data('category');
+        setSelectedCategories(selectedCategories.filter(function(category) { return category !== value; }));
+    });
+
+    $('#category-clear').on('click', function() {
+        setSelectedCategories([]);
+    });
+
+    $('#category-search').on('input', function() {
+        var term = this.value.trim().toLowerCase();
+        $('#category-options li').each(function() {
+            $(this).toggle($(this).data('category').indexOf(term) !== -1);
+        });
     });
 </script>
