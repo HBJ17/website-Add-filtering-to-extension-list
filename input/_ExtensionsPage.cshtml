@@ -266,7 +266,8 @@
     $('#category-search').on('input', function() {
         var term = this.value.trim().toLowerCase();
         $('#category-options li').each(function() {
-            $(this).toggle($(this).data('category').indexOf(term) !== -1);
+            // attr() keeps the value a string; data() would turn a numeric-looking category into a number.
+            $(this).toggle(String($(this).attr('data-category')).indexOf(term) !== -1);
         });
     });
 
